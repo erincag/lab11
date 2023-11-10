@@ -1,27 +1,62 @@
 ---
-title: "Lab 10"
+title: "Lab 11"
 author: "Erin Cagle"
 format: html
 editor: visual
 ---
 
-## Quarto
+## Lab 11
 
-Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
-
-## Running Code
-
-When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+## 1. Read in the Data
 
 ```{r}
-1 + 1
+cv_states <- as.data.frame(data.table::fread(("https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv")))
+
+state_pops <- as.data.frame(data.table::fread(("https://raw.githubusercontent.com/COVID19Tracking/associated-data/master/us_census_data/us_census_2018_population_estimates_states.csv")))
+
+state_pops$abb <- state_pops$state
+state_pops$state <- state_pops$state_name
+state_pops$state_name <- NULL
+
+cv_states_pop <- merge(cv_states, state_pops, by= "state")
+
 ```
 
-You can add options to executable code like this
+## 2. Look at the Data
 
 ```{r}
-#| echo: false
-2 * 2
+dim(cv_states_pop)
+head(cv_states_pop)
+tail(cv_states_pop)
+str(cv_states_pop)
 ```
 
-The `echo: false` option disables the printing of code (only output is displayed).
+All variables are in the correct format, except the date is stored as an IDate instead of a date structure. The merged file has saved the data in alphabetical order with Alabama being the head of data and Wyoming being the tail of the data. Within each state, the data is not sorted by date either.
+
+## 3. Format the Data
+
+```{r}
+# format the date
+cv_states_pop$date <- as.Date(cv_states_pop$date, format="%Y-%m-%d")
+
+# format the state and state abbreviation (abb) variables
+state_list <- unique(cv_states_pop$state)
+cv_states_pop$state <- factor(cv_states_pop$state, levels = state_list)
+abb_list <- unique(cv_states_pop$abb)
+cv_states_pop$abb <- factor(cv_states_pop$abb, levels = abb_list)
+
+### FINISH THE CODE HERE 
+# order the data first by state, second by date
+ordered_states <- cv_states_pop[order(c("state", "date")), ]
+
+# Confirm the variables are now correctly formatted
+str(cv_states_pop)
+head(cv_states_pop)
+tail(cv_states)
+
+# Inspect the range values for each variable. What is the date range? The range of cases and deaths?
+head(cv_states)
+summary(cv_states)
+min(cv_states$date)
+max(cv_states$date)
+```
